@@ -16,9 +16,9 @@ Jeweler::Tasks.new do |gem|
   # gem is a Gem::Specification... see http://docs.rubygems.org/read/chapter/20 for more options
   gem.name = "user_config"
   gem.homepage = "http://github.com/ytaka/user_config"
-  gem.license = "MIT"
-  gem.summary = %Q{TODO: one-line summary of your gem}
-  gem.description = %Q{TODO: longer description of your gem}
+  gem.license = "GPLv3"
+  gem.summary = "Management of configuration files in a user's home directory"
+  gem.description = "The liburary creates, saves, and loads configuruation files, which are in a user's home directory or a specified directory."
   gem.email = "d@ytak.info"
   gem.authors = ["Takayuki YAMAGUCHI"]
   # dependencies defined in Gemfile
