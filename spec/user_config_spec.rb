@@ -2,29 +2,35 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 describe UserConfig do
   before(:all) do
-    @root = File.join(File.dirname(__FILE__), 'config')
-    if File.exist?(@root)
-      raise "Temporary configuration directory '#{@root}' exists."
+    @home = File.join(File.dirname(__FILE__), 'config')
+    if File.exist?(@home)
+      raise "Temporary configuration directory '#{@home}' exists."
     end
   end
 
   subject do
-    UserConfig.new('test', :root => @root)
+    UserConfig.new('test', :home => @home)
   end
 
   it "should return directory" do
-    uconf = UserConfig.new('dir1', :root => @root)
-    uconf.directory.should == File.expand_path(File.join(@root, 'dir1'))
+    uconf = UserConfig.new('dir1', :home => @home)
+    uconf.directory.should == File.expand_path(File.join(@home, 'dir1'))
   end
 
   it "should create directory" do
-    uconf = UserConfig.new('dir2', :root => @root)
-    File.exist?(File.join(@root, 'dir2')).should be_true
+    uconf = UserConfig.new('dir2', :home => @home)
+    File.exist?(File.join(@home, 'dir2')).should be_true
   end
 
   it "should return file path under the directory" do
-    uconf = UserConfig.new('dir3', :root => @root)
-    uconf.file_path('path.yaml').should == File.join(@root, 'dir3', 'path.yaml')
+    uconf = UserConfig.new('dir3', :home => @home)
+    uconf.file_path('path.yaml').should == File.join(@home, 'dir3', 'path.yaml')
+  end
+
+  it "should raise error" do
+    lambda do
+      subject.file_path('/abc/def.yaml')
+    end.should raise_error ArgumentError
   end
 
   it "should set default value" do
@@ -86,7 +92,71 @@ describe UserConfig do
     File.read(full_path).should match(/^third/)
   end
 
+  it "should return false" do
+    subject.exist?('not_exist/file.yaml').should_not be_true
+  end
+
+  it "should return path" do
+    path = 'exist/file.yaml'
+    subject.create(path)
+    subject.exist?(path).should == File.join(subject.directory, path)
+  end
+
+  it "should delete a file" do
+    path = 'delete/file.yaml'
+    subject.create(path)
+    subject.delete(path)
+    subject.exist?(path).should_not be_true
+  end
+
+  it "should return nil" do
+    subject.list_in_directory('not_exist2/').should be_nil
+  end
+
+  it "should return list of files" do
+    files = ['list/file1.yaml', 'list/file2.yaml']
+    files.each do |path|
+      subject.create(path)
+    end
+    subject.list_in_directory('list').should == files.map do |path|
+      path.sub(/^list\//, '')
+    end
+  end
+
+  it "should return list of files of absolute path" do
+    files = ['list2/file1.yaml', 'list2/file2.yaml']
+    files.each do |path|
+      subject.create(path)
+    end
+    subject.list_in_directory('list2', :absolute => true).should == files.map do |path|
+      File.join(subject.directory, path)
+    end
+  end
+
+  it "should save a raw file" do
+    path ='save/raw/hello.txt'
+    subject.open(path, 'w') do |f|
+      f.puts 'hello world'
+    end
+    fpath = File.join(subject.directory, path)
+    File.exist?(fpath).should be_true
+    File.read(fpath).strip.should == 'hello world'
+  end
+
+  it "should read a file" do
+    path ='save/raw/hello.txt'
+    subject.open(path, 'w') do |f|
+      f.puts 'hello world'
+    end
+    fpath = File.join(subject.directory, path)
+    subject.read(path).should == File.read(fpath)
+  end
+
+  it "should return nil" do
+    subject.read('not_exist/file.yaml').should be_nil
+  end
+
   after(:all) do
-    FileUtils.rm_r(@root)
+    FileUtils.rm_r(@home)
   end
 end

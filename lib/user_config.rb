@@ -1,5 +1,6 @@
 require 'fileutils'
 require 'yaml'
+require 'pathname'
 
 class UserConfig
   @@default_value = {}
@@ -11,11 +12,11 @@ class UserConfig
   attr_reader :directory
 
   # +directory_name+ is a name of a configuration directory.
-  # opts[:root] is root directory, of which default value is ENV['HOME'].
+  # opts[:home] is root directory, of which default value is ENV['HOME'].
   # opts[:permission] is a file permission of the configuration directory,
   # of which default value is 0700.
   def initialize(directory_name, opts = {})
-    @directory = File.expand_path(File.join(opts[:root] || ENV['HOME'], directory_name))
+    @directory = File.expand_path(File.join(opts[:home] || ENV['HOME'], directory_name))
     @file = {}
     unless File.exist?(@directory)
       FileUtils.mkdir_p(@directory)
@@ -24,6 +25,9 @@ class UserConfig
   end
 
   def file_path(path)
+    if Pathname(path).absolute?
+      raise ArgumentError, "Path '#{path}' is absolute."
+    end
     File.join(@directory, path)
   end
 
@@ -53,6 +57,7 @@ class UserConfig
     if opts[:mode]
       FileUtils.chmod(fpath, opts[:mode])
     end
+    fpath
   end
 
   # Load the configuration file of +path+.
@@ -62,7 +67,7 @@ class UserConfig
 
   alias_method :[], :load
 
-  # Return an array of paths of all files.
+  # Return an array of paths of all cached files.
   def all_file_paths
     @file.map do |ary|
       file_path(ary[0])
@@ -73,6 +78,69 @@ class UserConfig
   def save_all
     @file.each_value do |yaml_file|
       yaml_file.save
+    end
+  end
+
+  # Return full path if +path+ exists under the configuration directory.
+  # Otherwise, false.
+  def exist?(path)
+    fpath = file_path(path)
+    File.exist?(fpath) ? fpath : false
+  end
+
+  # Delete a file of +path+.
+  def delete(path)
+    if path.size > 0
+      FileUtils.rm_r(file_path(path))
+    else
+      raise ArgumentError, "Path string is empty."
+    end
+  end
+
+  # List files in directory +dir+.
+  # If opts[:absolute] is true, return an array of absolute paths.
+  def list_in_directory(dir, opts = {})
+    fpath = file_path(dir)
+    if File.directory?(fpath)
+      files = Dir.entries(fpath).delete_if do |d|
+        /^\.+$/ =~ d
+      end.sort
+      if opts[:absolute]
+        files.map! do |path|
+          File.join(fpath, path)
+        end
+      end
+      files
+    else
+      nil
+    end
+  end
+
+  # Open file of +path+ with +mode+.
+  def open(path, mode, &block)
+    fpath = file_path(path)
+    unless File.exist?((dir = File.dirname(fpath)))
+      FileUtils.mkdir_p(dir)
+    end
+    f = Kernel.open(fpath, mode)
+    if block_given?
+      begin
+        yield(f)
+      ensure
+        f.close
+      end
+    else
+      f
+    end
+  end
+
+  # Read file of +path+ and return a string.
+  def read(path)
+    fpath = file_path(path)
+    if File.exist?(fpath)
+      File.read(fpath)
+    else
+      nil
     end
   end
 
@@ -109,8 +177,8 @@ class UserConfig
       unless File.exist?((dir = File.dirname(path)))
         FileUtils.mkdir_p(dir)
       end
-      open(path, 'w') do |f|
-        f.print to_yaml
+      Kernel.open(path, 'w') do |f|
+        YAML.dump(@cache, f)
       end
     end
 
