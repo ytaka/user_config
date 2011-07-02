@@ -3,10 +3,15 @@ require 'yaml'
 require 'pathname'
 
 class UserConfig
-  @@default_value = {}
+  def self.default_value
+    unless @default_value
+      @default_value = {}
+    end
+    @default_value
+  end
 
   def self.default(path, default_hash)
-    @@default_value[path] = default_hash
+    self.default_value[path] = default_hash
   end
 
   attr_reader :directory
@@ -32,7 +37,7 @@ class UserConfig
   end
 
   def default_value(path)
-    @@default_value[path] || {}
+    self.class.default_value[path] || {}
   end
   private :default_value
 

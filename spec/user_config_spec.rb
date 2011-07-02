@@ -1,5 +1,8 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
+class UserConfigCustom < UserConfig
+end
+
 describe UserConfig do
   before(:all) do
     @home = File.join(File.dirname(__FILE__), 'config')
@@ -154,6 +157,11 @@ describe UserConfig do
 
   it "should return nil" do
     subject.read('not_exist/file.yaml').should be_nil
+  end
+
+  it "should have different default value" do
+    UserConfigCustom.default_value.should be_an_instance_of Hash
+    UserConfig.default_value.object_id.should_not == UserConfigCustom.default_value.object_id
   end
 
   after(:all) do
