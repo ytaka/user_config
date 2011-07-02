@@ -18,7 +18,7 @@ Jeweler::Tasks.new do |gem|
   gem.homepage = "http://github.com/ytaka/user_config"
   gem.license = "GPLv3"
   gem.summary = "Management of configuration files in a user's home directory"
-  gem.description = "The liburary creates, saves, and loads configuruation files, which are in a user's home directory or a specified directory."
+  gem.description = "The library creates, saves, and loads configuration files, which are in a user's home directory or a specified directory."
   gem.email = "d@ytak.info"
   gem.authors = ["Takayuki YAMAGUCHI"]
   # dependencies defined in Gemfile
