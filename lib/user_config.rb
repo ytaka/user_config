@@ -3,6 +3,9 @@ require 'yaml'
 require 'pathname'
 
 class UserConfig
+  class DirectoryExistenceError < StandardError
+  end
+
   def self.default_value
     unless @default_value
       @default_value = {}
@@ -20,10 +23,16 @@ class UserConfig
   # opts[:home] is root directory, of which default value is ENV['HOME'].
   # opts[:permission] is a file permission of the configuration directory,
   # of which default value is 0700.
+  # If opts[:new_directory] is true and the directory exists
+  # then an error raises.
   def initialize(directory_name, opts = {})
     @directory = File.expand_path(File.join(opts[:home] || ENV['HOME'], directory_name))
     @file = {}
-    unless File.exist?(@directory)
+    if File.exist?(@directory)
+      if opts[:new_directory]
+        raise UserConfig::DirectoryExistenceError, "Can not create new directory: #{@directory}"
+      end
+    else
       FileUtils.mkdir_p(@directory)
       FileUtils.chmod(opts[:permission] || 0700, @directory)
     end

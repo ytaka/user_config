@@ -20,6 +20,13 @@ describe UserConfig do
     uconf.directory.should == File.expand_path(File.join(@home, 'dir1'))
   end
 
+  it "should raise error" do
+    UserConfig.new('dir1', :home => @home)
+    lambda do
+      uconf = UserConfig.new('dir1', :home => @home, :new_directory => true)
+    end.should raise_error UserConfig::DirectoryExistenceError
+  end
+
   it "should create directory" do
     uconf = UserConfig.new('dir2', :home => @home)
     File.exist?(File.join(@home, 'dir2')).should be_true
