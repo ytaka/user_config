@@ -1,6 +1,7 @@
 require 'fileutils'
 require 'yaml'
 require 'pathname'
+require 'user_config/version'
 
 class UserConfig
   class DirectoryExistenceError < StandardError
