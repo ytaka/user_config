@@ -102,6 +102,23 @@ describe UserConfig do
     File.read(full_path).should match(/^third/)
   end
 
+  it "should check set." do
+    yaml_path = 'set/test.yaml'
+    yaml = subject[yaml_path]
+    lambda do
+      yaml['key'] = 'value'
+    end.should change { yaml.set?('key') }
+  end
+
+  it "should delete value of key." do
+    yaml_path = 'delete/test.yaml'
+    yaml = subject[yaml_path]
+    yaml['to_be_deleted'] = 123
+    lambda do
+      yaml.delete('to_be_deleted')
+    end.should change { yaml.set?('to_be_deleted') }
+  end
+
   it "should return false" do
     subject.exist?('not_exist/file.yaml').should_not be_true
   end

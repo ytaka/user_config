@@ -203,5 +203,13 @@ class UserConfig
     def []=(key, val)
       @cache[key] = val
     end
+
+    def delete(key)
+      @cache.delete(key)
+    end
+
+    def set?(key)
+      @cache.has_key?(key)
+    end
   end
 end
