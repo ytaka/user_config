@@ -37,6 +37,18 @@ describe UserConfig do
     uconf.file_path('path.yaml').should == File.join(@home, 'dir3', 'path.yaml')
   end
 
+  it "should create parent directory" do
+    uconf = UserConfig.new('dir4', :home => @home)
+    uconf.file_path('path/to/file.yaml', true)
+    File.exist?(uconf.file_path('path/to')).should be_true
+  end
+
+  it "should create without parent directory" do
+    uconf = UserConfig.new('dir5', :home => @home)
+    uconf.file_path('path/to/file.yaml')
+    File.exist?(uconf.file_path('path/to')).should be_false
+  end
+
   it "should raise error" do
     lambda do
       subject.file_path('/abc/def.yaml')

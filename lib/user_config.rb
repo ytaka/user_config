@@ -39,11 +39,15 @@ class UserConfig
     end
   end
 
-  def file_path(path)
+  def file_path(path, create_directory = nil)
     if Pathname(path).absolute?
       raise ArgumentError, "Path '#{path}' is absolute."
     end
-    File.join(@directory, path)
+    fpath = File.join(@directory, path)
+    if create_directory && !File.exist?((dir = File.dirname(fpath)))
+      FileUtils.mkdir_p(dir)
+    end
+    fpath
   end
 
   def default_value(path)
@@ -133,11 +137,7 @@ class UserConfig
 
   # Open file of +path+ with +mode+.
   def open(path, mode, &block)
-    fpath = file_path(path)
-    unless File.exist?((dir = File.dirname(fpath)))
-      FileUtils.mkdir_p(dir)
-    end
-    f = Kernel.open(fpath, mode)
+    f = Kernel.open(file_path(path, true), mode)
     if block_given?
       begin
         yield(f)
