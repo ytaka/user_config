@@ -174,20 +174,22 @@ describe UserConfig do
 
   it "should save a raw file" do
     path ='save/raw/hello.txt'
-    subject.open(path, 'w') do |f|
+    full_path = subject.open(path, 'w') do |f|
       f.puts 'hello world'
     end
     fpath = File.join(subject.directory, path)
+    full_path.should == fpath
     File.exist?(fpath).should be_true
     File.read(fpath).strip.should == 'hello world'
   end
 
   it "should read a file" do
     path ='save/raw/hello.txt'
-    subject.open(path, 'w') do |f|
+    full_path = subject.open(path, 'w') do |f|
       f.puts 'hello world'
     end
     fpath = File.join(subject.directory, path)
+    full_path.should == fpath
     subject.read(path).should == File.read(fpath)
   end
 

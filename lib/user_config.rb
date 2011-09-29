@@ -137,13 +137,15 @@ class UserConfig
 
   # Open file of +path+ with +mode+.
   def open(path, mode, &block)
-    f = Kernel.open(file_path(path, true), mode)
+    full_path = file_path(path, true)
+    f = Kernel.open(full_path, mode)
     if block_given?
       begin
         yield(f)
       ensure
         f.close
       end
+      full_path
     else
       f
     end
