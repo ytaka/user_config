@@ -187,6 +187,10 @@ class UserConfig
       YAML.dump(@cache)
     end
 
+    def to_hash
+      @cache
+    end
+
     # Save cached values to the path of file.
     def save
       unless File.exist?((dir = File.dirname(path)))
