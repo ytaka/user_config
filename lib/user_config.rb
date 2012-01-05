@@ -7,6 +7,8 @@ class UserConfig
   class DirectoryExistenceError < StandardError
   end
 
+  # Get default value of current class.
+  # The value is a hash, of which keys are paths of yaml files.
   def self.default_value
     unless @default_value
       @default_value = {}
@@ -14,18 +16,21 @@ class UserConfig
     @default_value
   end
 
+  # Set default values of the specified file of current class.
+  # @param [String] path Relative path of the specified yaml file
+  # @param [Hash] default_hash Default values
   def self.default(path, default_hash)
     self.default_value[path] = default_hash
   end
 
   attr_reader :directory
 
-  # +directory_name+ is a name of a configuration directory.
-  # opts[:home] is root directory, of which default value is ENV['HOME'].
-  # opts[:permission] is a file permission of the configuration directory,
-  # of which default value is 0700.
-  # If opts[:new_directory] is true and the directory exists
-  # then an error raises.
+  # @param [String] directory_name :name of a configuration directory.
+  # @option opts [String] :home Root directory, of which default value is ENV['HOME'].
+  # @option opts [Integer] :permission A file permission of the configuration directory,
+  #   of which default value is 0700.
+  # @option opts [boolean] :new_directory
+  #   If opts[:new_directory] is true and the directory exists then an error raises.
   def initialize(directory_name, opts = {})
     @directory = File.expand_path(File.join(opts[:home] || ENV['HOME'], directory_name))
     @file = {}
@@ -39,6 +44,9 @@ class UserConfig
     end
   end
 
+  # @param [String] path Relative path of a specified file
+  # @param [boolean] create_directory If the value is true then we create parent directories recursively.
+  # @return [String] An absolute path of a specified file
   def file_path(path, create_directory = nil)
     if Pathname(path).absolute?
       raise ArgumentError, "Path '#{path}' is absolute."
@@ -60,14 +68,18 @@ class UserConfig
   end
   private :load_file
 
-  # Save the configuration file of +path+.
-  # If we set a hash to +value+ then its value is saved to the new configuration file.
+  # Save the configuration file under the directory.
+  # @param [String] path Relative path of target file
+  # @param [Hash] value Values to be saved to the file
   def create(path, value = nil)
     yaml_file = load_file(path, true, value)
     yaml_file.save
   end
 
   # Make directory under the configuration directory.
+  # @param [String] path Relative path of a directory
+  # @param [Hash] opts Options
+  # @option opts [Integer] :mode Permission for a directory to be created
   def make_directory(path, opts = {})
     fpath = file_path(path)
     unless File.exist?(fpath)
@@ -79,7 +91,9 @@ class UserConfig
     fpath
   end
 
-  # Load the configuration file of +path+.
+  # Load the configuration file.
+  # @param [String] path Relative path of a file to be loaded
+  # @return [hash]
   def load(path)
     @file[path] || load_file(path)
   end
@@ -116,8 +130,10 @@ class UserConfig
     end
   end
 
-  # List files in directory +dir+.
-  # If opts[:absolute] is true, return an array of absolute paths.
+  # List files in the specified directory.
+  # @param [String] dir A directory in which you want to list files.
+  # @param [Hash] opts Options
+  # @option opts [boolean] :absolute If the value is true then we get an array of absolute paths.
   def list_in_directory(dir, opts = {})
     fpath = file_path(dir)
     if File.directory?(fpath)
@@ -135,7 +151,9 @@ class UserConfig
     end
   end
 
-  # Open file of +path+ with +mode+.
+  # Open a file.
+  # @param [String] path A path of the file
+  # @param [String] mode A mode
   def open(path, mode, &block)
     full_path = file_path(path, true)
     f = Kernel.open(full_path, mode)
@@ -151,7 +169,9 @@ class UserConfig
     end
   end
 
-  # Read file of +path+ and return a string.
+  # Read a file
+  # @param [String] path A relative path of a file
+  # @return [String] Strings of the file
   def read(path)
     fpath = file_path(path)
     if File.exist?(fpath)
@@ -164,9 +184,10 @@ class UserConfig
   class YAMLFile
     attr_reader :path
 
-    # +path+ is path of yaml file, which saves pairs of key and value.
-    # +default+ is a hash saving default value.
-    # if +opts[:merge]+ is true then values of an instance are merged with default values.
+    # @param [String] path A path of yaml file, which saves pairs of key and value.
+    # @param [Hash] default A hash saving default value.
+    # @param [Hash] opts Options
+    # @option opts [booean] If the value is true then values of an instance are merged with default values.
     def initialize(path, default, opts = {})
       @path = path
       @default = default
@@ -189,6 +210,8 @@ class UserConfig
       YAML.dump(@cache)
     end
 
+    # @param [boolean] merge If the value is true then we merges default values and cached values.
+    # @return [Hash] A hash created by merging default values and cached values.
     def to_hash(merge = false)
       if merge
         @default.merge(@cache)
