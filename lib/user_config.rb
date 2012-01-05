@@ -170,20 +170,20 @@ class UserConfig
     def initialize(path, default, opts = {})
       @path = path
       @default = default
-      @cache = load
+      @cache = load_yaml_file
       if opts[:merge]
         @cache.merge!(@default)
       end
     end
 
-    def load
+    def load_yaml_file
       if File.exist?(path)
         YAML.load_file(path)
       else
         {}
       end
     end
-    private :load
+    private :load_yaml_file
 
     def to_yaml
       YAML.dump(@cache)
