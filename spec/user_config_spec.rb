@@ -202,6 +202,21 @@ describe UserConfig do
     UserConfig.default_value.object_id.should_not == UserConfigCustom.default_value.object_id
   end
 
+  context "when calling methods of Hash" do
+    before(:all) do
+      UserConfig.default("to_test_hash", { :a => "A", :b => "B" })
+    end
+
+    it "should be empty." do
+      subject["empty_conf"].empty?.should be_true
+    end
+
+    it "should return merged hash" do
+      subject["to_test_hash"][:b] = "BBB"
+      subject["to_test_hash"].to_hash(true).should == { :a => "A", :b => "BBB" }
+    end
+  end
+
   after(:all) do
     FileUtils.rm_r(@home)
   end
