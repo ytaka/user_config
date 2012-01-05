@@ -189,8 +189,12 @@ class UserConfig
       YAML.dump(@cache)
     end
 
-    def to_hash
-      @cache
+    def to_hash(merge = false)
+      if merge
+        @default.merge(@cache)
+      else
+        @cache
+      end
     end
 
     # Save cached values to the path of file.
@@ -217,6 +221,14 @@ class UserConfig
 
     def set?(key)
       @cache.has_key?(key)
+    end
+
+    def method_missing(method_name, *args, &block)
+      if Hash.method_defined?(method_name)
+        to_hash(true).__send__(method_name, *args, &block)
+      else
+        super
+      end
     end
   end
 end
